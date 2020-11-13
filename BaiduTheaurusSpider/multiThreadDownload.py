@@ -171,12 +171,12 @@ def getCategoryPages(caterotyID,downloadDIR):
 
 
 if __name__ == '__main__':
-    baseDir = 'D:/百度输入法/多线程下载' # 设置你的下载目录
-    DOWNLOAD_LOG = baseDir+'/baiduDownload.log'
+    baseDir = '/tmp/baidu' # 设置你的下载目录
+    DOWNLOAD_LOG = '/tmp/baiduDownload.log'
     start = time.time()
     bigCateDict, smallCateDict = getCategory.getBaiduDictCate()
     print '===========get categories successfully================'
-    threadNum = 5    # 下载的线程数目
+    threadNum = 10    # 下载的线程数目
     # 创建线程
     for i in range(threadNum):
         th = downloadThread()

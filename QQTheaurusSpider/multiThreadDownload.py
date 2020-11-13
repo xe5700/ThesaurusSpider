@@ -117,10 +117,10 @@ def downloadSingleType(bigCate,smallCate,baseDir):
 
 if __name__ == '__main__':
     start = time.time()
-    baseDir = 'G:/各大输入法词库/QQ/多线程下载'  # 下载的目录，最后不能带有/
+    baseDir = '/tmp/qq'  # 下载的目录，最后不能带有/
     category = getQQCategory.getCategory()
 
-    threadNum = 5    # 下载的线程数目
+    threadNum = 10    # 下载的线程数目
     for i in range(threadNum):
         th = downloadThread()
         th.setDaemon(True)

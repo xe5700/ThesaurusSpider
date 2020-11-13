@@ -123,7 +123,7 @@ if __name__ == '__main__':
     start = time.time()
     bigCateDict, smallCateDict = getCategory.getSogouDictCate()
     # baseDir = 'G:/搜狗词库/多线程下载'
-    baseDir = './sogou_dicts_chinese'
+    baseDir = '/tmp/sogou'  # 下载的目录，最后不能带有/
     DOWNLOADLOG = baseDir+'/sougouDownload.log'
     threadNum = 10    # 下载的线程数目
     lock = threading.Lock()
