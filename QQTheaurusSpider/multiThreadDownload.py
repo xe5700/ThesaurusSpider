@@ -117,7 +117,7 @@ def downloadSingleType(bigCate,smallCate,baseDir):
 
 if __name__ == '__main__':
     start = time.time()
-    baseDir = '/tmp/qq'  # 下载的目录，最后不能带有/
+    baseDir = '/tmp/dicts/qq'  # 下载的目录，最后不能带有/
     category = getQQCategory.getCategory()
 
     threadNum = 10    # 下载的线程数目

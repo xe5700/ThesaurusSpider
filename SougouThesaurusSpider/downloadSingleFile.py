@@ -10,12 +10,15 @@
 import urllib
 import urllib2
 import re
+import time
+import os
 
-def downLoadSingleFile(url,dir,logFile):
+def downLoadSingleFile(url,m_date,dir,logFile):
     """
     下载单个词库文件
     :param url: 词库文件的URL
     :param dir: 本地的存放目录
+    :param m_date: 文件日期
     :return: None
     """
 
@@ -51,7 +54,9 @@ def downLoadSingleFile(url,dir,logFile):
     try:
         with open(filePath.decode('utf8'), 'wb') as f:  # 保存中文文件名所必须的
             f.write(data)
-        print filePath+' has downloaded!'
+        print ("{} has downloaded! and set file update date to {}".format(filePath, m_date.isoformat()))
+        t = int(time.mktime(m_date.timetuple()))
+        os.utime(filePath, (t,t))
     except:
         with open(logFile.decode('utf8'), 'a') as f:
             f.write('unexcepted error while downloading file of '+url+'\n')

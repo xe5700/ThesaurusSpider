@@ -7,15 +7,18 @@
 
 # 功能：利用多线程和队列进行下载搜狗词库，使用时把主函数中的baseDir改成自己的下载目录即可，注意baseDir末尾不能有/
 
+import urllib
 import urllib2
 import Queue
 import re
 import os
 import threading
 import time
+import datetime
 
 import downloadSingleFile
 import getCategory
+import argparse
 
 # 全局变量
 VISITED = []         # 记录某个url是否已经被访问了,不用list，因为判断元素是否在list的时间复杂度是O(n)
@@ -26,8 +29,11 @@ PageBaseURL = ''        # 列出下载文件的页面的URL的共同前缀
 FileBaseURL = ''        # 文件实际下载URL的共同前缀
 PagePattern = None      # 在网页源码找到其他页面的URL的正则表达匹配模式
 FilePattern = None      # 在网页源码找到当前页面可下载文件的url的正则表达匹配模式
+DatePattern1 = re.compile('(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)')
+DatePattern2 = re.compile('<div class="show_content">.+\d+-\d+-\d+ \d+:\d+:\d+')
 QUEUE = Queue.Queue()   # 队列，用于存放待访问的页面URL
-
+dir_re = None
+file_re = None
 
 class downloadThread(threading.Thread):
     """
@@ -83,9 +89,10 @@ class downloadThread(threading.Thread):
                 lock.release()
 
             fileResult = re.findall(FilePattern, data)
-            for later in fileResult:
+            dateResult = DatePattern2.findall(data)
+            for k,later in enumerate(fileResult):
                 fileURL = FileBaseURL+later
-
+                date2 = DatePattern1.search(dateResult[k]).groups()
                 lock.acquire()  # 获取锁来修改DOWNLOADED内容
                 try:
                     if fileURL in DOWNLOADED:
@@ -94,9 +101,14 @@ class downloadThread(threading.Thread):
                         DOWNLOADED.append(fileURL)
                 finally:
                     lock.release()
-
-                print self.name + ' is downloading ' + fileURL+' .......'
-                downloadSingleFile.downLoadSingleFile(fileURL, DIR, DOWNLOADLOG)
+                
+                fileStr = re.findall('name=(.*)$', fileURL)[0]
+                filename = urllib.unquote(fileStr)
+                if file_re != None and file_re.search(filename) == None:
+                    continue
+                print self.name + ' is downloading ' + urllib.unquote(fileURL)+' .......'
+                date2 = datetime.datetime(year=int(date2[0]), month=int(date2[1]), day=int(date2[2]), hour=int(date2[3]), minute=int(date2[4]), second=int(date2[5]))
+                downloadSingleFile.downLoadSingleFile(fileURL, date2, DIR, DOWNLOADLOG)
             QUEUE.task_done()   # Queue.join()阻塞直到所有任务完成，也就是说要收到从QUEUE中取出的每个item的task_done消息
 
 
@@ -120,11 +132,15 @@ def downloadSingleCate(caterotyID,downloadDIR):
 
 
 if __name__ == '__main__':
+    if os.environ["DIR_RE"] != None:
+        dir_re = re.compile(os.environ["DIR_RE"])
+    if os.environ["FILE_RE"] != None:
+        file_re = re.compile(os.environ["FILE_RE"])
     start = time.time()
     bigCateDict, smallCateDict = getCategory.getSogouDictCate()
     # baseDir = 'G:/搜狗词库/多线程下载'
-    baseDir = '/tmp/sogou'  # 下载的目录，最后不能带有/
-    DOWNLOADLOG = baseDir+'/sougouDownload.log'
+    baseDir = '/tmp/dicts/sogou'  # 下载的目录，最后不能带有/
+    DOWNLOADLOG = '/tmp/sougouDownload.log'
     threadNum = 10    # 下载的线程数目
     lock = threading.Lock()
     for i in range(threadNum):
@@ -135,6 +151,8 @@ if __name__ == '__main__':
     for i in bigCateDict:
         for j in smallCateDict[i]:
             downloadDir = baseDir+'/%s/%s/'  %(bigCateDict[i], smallCateDict[i][j])
+            if dir_re != None and dir_re.search(downloadDir) == None:
+                continue
             downloadSingleCate(j, downloadDir)
             QUEUE.join()  # Blocks until all items in the QUEUE have been gotten and processed（necessary），
     print 'process time:%s' % (time.time()-start)
