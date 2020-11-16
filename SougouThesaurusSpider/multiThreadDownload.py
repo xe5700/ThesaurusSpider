@@ -35,7 +35,6 @@ QUEUE = Queue.Queue()   # 队列，用于存放待访问的页面URL
 dir_re = None
 file_re = None
 
-FIND2NAME = re.compile(r'(.+)name=(.*)$')
 
 class downloadThread(threading.Thread):
     """
@@ -108,9 +107,6 @@ class downloadThread(threading.Thread):
                     continue
                 if CATEID != 0 and filename.endswith("【官方推荐】"):
                     continue
-                
-                furl2 = FIND2NAME.search(fileURL).groups()
-                fileURL = furl2[0]+"name="+urllib.quote(furl2[1])
 
                 date2 = datetime.datetime(year=int(date2[0]), month=int(date2[1]), day=int(date2[2]), hour=int(date2[3]), minute=int(date2[4]), second=int(date2[5]))
                 print self.name + ' is downloading ' + urllib.unquote(fileURL)+' .......'

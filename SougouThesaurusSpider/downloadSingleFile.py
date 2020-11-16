@@ -13,6 +13,7 @@ import re
 import time
 import os
 
+FIND2NAME = re.compile(r'(.+)name=(.*)$')
 
 def downLoadSingleFile(url,m_date,dir,logFile):
     """
@@ -33,8 +34,8 @@ def downLoadSingleFile(url,m_date,dir,logFile):
     url = r'http://download.pinyin.sogou.com/dict/download_cell.php?id=15197&name=%E8%B1%A1%E6%A3%8B%E3%80%90%E5%AE%98%E6%96%B9%E6%8E%A8%E8%8D%90%E3%80%91'
     url = 'http://download.pinyin.sogou.com/dict/download_cell.php?id=15197&name=象棋【官方推荐】'
     '''
-    
-    request = urllib2.Request(url=url, headers=headers)
+    names = FIND2NAME.search(url).groups()
+    request = urllib2.Request(url=names[0]+"?name=9527", headers=headers)
     try:
         response = urllib2.urlopen(request)
     except urllib2.HTTPError, e:
