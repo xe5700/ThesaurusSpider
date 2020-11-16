@@ -35,6 +35,8 @@ QUEUE = Queue.Queue()   # 队列，用于存放待访问的页面URL
 dir_re = None
 file_re = None
 
+FIND2NAME = re.compile(r'(.+)name=(.*)$')
+
 class downloadThread(threading.Thread):
     """
     用于下载文件的线程类
@@ -107,8 +109,11 @@ class downloadThread(threading.Thread):
                 if CATEID != 0 and filename.endswith("【官方推荐】"):
                     continue
                 
-                print self.name + ' is downloading ' + urllib.unquote(fileURL)+' .......'
+                furl2 = FIND2NAME.search(fileURL).groups()
+                fileURL = furl2[0]+"name="+urllib.quote(furl2[1])
+
                 date2 = datetime.datetime(year=int(date2[0]), month=int(date2[1]), day=int(date2[2]), hour=int(date2[3]), minute=int(date2[4]), second=int(date2[5]))
+                print self.name + ' is downloading ' + urllib.unquote(fileURL)+' .......'
                 downloadSingleFile.downLoadSingleFile(fileURL, date2, DIR, DOWNLOADLOG)
             QUEUE.task_done()   # Queue.join()阻塞直到所有任务完成，也就是说要收到从QUEUE中取出的每个item的task_done消息
 
@@ -144,7 +149,7 @@ def downloadSearch(search,downloadDIR):
     DIR = downloadDIR
     sn = '%A1%BE%B9%D9%B7%BD%CD%C6%BC%F6%A1%BF'.lower()
     PageBaseURL = 'http://pinyin.sogou.com/dict/search/search_list/%s' % sn
-    FileBaseURL = 'http://pinyin.sogou.com/d/dict/'
+    FileBaseURL = 'http://download.pinyin.sogou.com/dict/'
     PagePattern = re.compile(r'href="/dict/search/search_list/%s/default(.*?)"' % sn)  # 非贪婪匹配,查找跳转到其他页面的url
     FilePattern = re.compile(r'href="//pinyin.sogou.com/d/dict/(.*?)"')   # 非贪婪匹配,查找可下载的文件
     QUEUE.put('http://pinyin.sogou.com/dict/search/search_list/%s/default' % sn)  # 将当前页面也就是访问的第一个页面放到队列中

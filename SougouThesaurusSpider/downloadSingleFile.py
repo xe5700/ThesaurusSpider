@@ -13,6 +13,7 @@ import re
 import time
 import os
 
+
 def downLoadSingleFile(url,m_date,dir,logFile):
     """
     下载单个词库文件
@@ -21,19 +22,18 @@ def downLoadSingleFile(url,m_date,dir,logFile):
     :param m_date: 文件日期
     :return: None
     """
-
+    
     userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36'
     referrer = 'http://pinyin.sogou.com/dict/cate/index/'
     headers = {}
     headers['User-Agent'] = userAgent
     headers['Referer'] = referrer  # 解决防盗链带来的403问题
-
     '''
     url 示例
     url = r'http://download.pinyin.sogou.com/dict/download_cell.php?id=15197&name=%E8%B1%A1%E6%A3%8B%E3%80%90%E5%AE%98%E6%96%B9%E6%8E%A8%E8%8D%90%E3%80%91'
     url = 'http://download.pinyin.sogou.com/dict/download_cell.php?id=15197&name=象棋【官方推荐】'
     '''
-
+    
     request = urllib2.Request(url=url, headers=headers)
     try:
         response = urllib2.urlopen(request)
@@ -41,7 +41,8 @@ def downLoadSingleFile(url,m_date,dir,logFile):
         with open(logFile.decode('utf8'), 'a') as f:
             f.write(str(e.code)+' error while downloading file of '+url+'\n')
         return
-    except:
+    except BaseException, e:
+        print e
         with open(logFile.decode('utf8'), 'a') as f:
             f.write('unexcepted error while downloading file of '+url+'\n')
         return
@@ -55,8 +56,6 @@ def downLoadSingleFile(url,m_date,dir,logFile):
         with open(filePath.decode('utf8'), 'wb') as f:  # 保存中文文件名所必须的
             f.write(data)
         print ("{} has downloaded! and set file update date to {}".format(filePath, m_date.isoformat()))
-        t = int(time.mktime(m_date.timetuple()))
-        os.utime(filePath, (t,t))
     except:
         with open(logFile.decode('utf8'), 'a') as f:
             f.write('unexcepted error while downloading file of '+url+'\n')
