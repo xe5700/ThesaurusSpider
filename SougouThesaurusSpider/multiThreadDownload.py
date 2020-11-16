@@ -132,10 +132,10 @@ def downloadSingleCate(caterotyID,downloadDIR):
 
 
 if __name__ == '__main__':
-    if os.environ["DIR_RE"] != None:
-        dir_re = re.compile(os.environ["DIR_RE"])
-    if os.environ["FILE_RE"] != None:
-        file_re = re.compile(os.environ["FILE_RE"])
+    if os.environ["SOGOU_DIR_RE"] != None:
+        dir_re = re.compile(os.environ["SOGOU_DIR_RE"])
+    if os.environ["SOGOU_FILE_RE"] != None:
+        file_re = re.compile(os.environ["SOGOU_FILE_RE"])
     start = time.time()
     bigCateDict, smallCateDict = getCategory.getSogouDictCate()
     # baseDir = 'G:/搜狗词库/多线程下载'
