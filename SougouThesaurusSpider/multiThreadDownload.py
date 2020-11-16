@@ -15,7 +15,7 @@ import os
 import threading
 import time
 import datetime
-
+from utils import *
 import downloadSingleFile
 import getCategory
 import argparse
@@ -74,7 +74,6 @@ class downloadThread(threading.Thread):
             except:
                 with open(DOWNLOADLOG, 'a') as f:
                     f.write(' unexpected error while parsing the URL:'+currentURL+'\n')
-
             pageResult = re.findall(PagePattern, data)
             for i in range(len(pageResult)):
                 pageURL = PageBaseURL + '/default' + pageResult[i]
@@ -101,16 +100,17 @@ class downloadThread(threading.Thread):
                         DOWNLOADED.append(fileURL)
                 finally:
                     lock.release()
-                
                 fileStr = re.findall('name=(.*)$', fileURL)[0]
                 filename = urllib.unquote(fileStr)
                 if file_re != None and file_re.search(filename) == None:
                     continue
+                if CATEID != 0 and filename.endswith("【官方推荐】"):
+                    continue
+                
                 print self.name + ' is downloading ' + urllib.unquote(fileURL)+' .......'
                 date2 = datetime.datetime(year=int(date2[0]), month=int(date2[1]), day=int(date2[2]), hour=int(date2[3]), minute=int(date2[4]), second=int(date2[5]))
                 downloadSingleFile.downLoadSingleFile(fileURL, date2, DIR, DOWNLOADLOG)
             QUEUE.task_done()   # Queue.join()阻塞直到所有任务完成，也就是说要收到从QUEUE中取出的每个item的task_done消息
-
 
 def downloadSingleCate(caterotyID,downloadDIR):
     """
@@ -130,8 +130,28 @@ def downloadSingleCate(caterotyID,downloadDIR):
     FilePattern = re.compile(r'href="http://download.pinyin.sogou.com(.*?)"')   # 非贪婪匹配,查找可下载的文件
     QUEUE.put(PageBaseURL)  # 将当前页面也就是访问的第一个页面放到队列中
 
+def downloadSearch(search,downloadDIR):
+    """
+    通过类别ID构建某一类词典的下载链接，设置下载目录等参数，初始化这一类别的队列；
+    通过修改全局变量，线程读取全局变量来获取修改后的内容
+
+    :param search: 搜索的词库类型的ID，用于找到正确url
+    :param downloadDIR: 下载词库的存放目录
+    :return: None
+    """
+    global CATEID, DIR, PageBaseURL, FileBaseURL, PagePattern, FilePattern, QUEUE
+    CATEID = 0
+    DIR = downloadDIR
+    sn = '%A1%BE%B9%D9%B7%BD%CD%C6%BC%F6%A1%BF'.lower()
+    PageBaseURL = 'http://pinyin.sogou.com/dict/search/search_list/%s' % sn
+    FileBaseURL = 'http://pinyin.sogou.com/d/dict/'
+    PagePattern = re.compile(r'href="/dict/search/search_list/%s/default(.*?)"' % sn)  # 非贪婪匹配,查找跳转到其他页面的url
+    FilePattern = re.compile(r'href="//pinyin.sogou.com/d/dict/(.*?)"')   # 非贪婪匹配,查找可下载的文件
+    QUEUE.put('http://pinyin.sogou.com/dict/search/search_list/%s/default' % sn)  # 将当前页面也就是访问的第一个页面放到队列中
+
 
 if __name__ == '__main__':
+    sogou_new_word = str2bool(os.environ["SOGOU_NEW_WORD"])
     if os.environ["SOGOU_DIR_RE"] != None:
         dir_re = re.compile(os.environ["SOGOU_DIR_RE"])
     if os.environ["SOGOU_FILE_RE"] != None:
@@ -147,7 +167,14 @@ if __name__ == '__main__':
         th = downloadThread()
         th.setDaemon(True)
         th.start()
-
+    def offical_dl():
+        downloadDir = baseDir+'/官方词库/'
+        if dir_re != None and dir_re.search(downloadDir) == None:
+            return
+        downloadSearch("【官方推荐】", downloadDir)
+    if sogou_new_word:
+        offical_dl()
+        QUEUE.join()
     for i in bigCateDict:
         for j in smallCateDict[i]:
             downloadDir = baseDir+'/%s/%s/'  %(bigCateDict[i], smallCateDict[i][j])
