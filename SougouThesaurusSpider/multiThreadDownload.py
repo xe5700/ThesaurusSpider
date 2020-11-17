@@ -34,7 +34,7 @@ DatePattern2 = re.compile('<div class="show_content">.+\d+-\d+-\d+ \d+:\d+:\d+')
 QUEUE = Queue.Queue()   # 队列，用于存放待访问的页面URL
 dir_re = None
 file_re = None
-
+FIND2NAME = re.compile(r'(.+)name=(.*)$')
 
 class downloadThread(threading.Thread):
     """
@@ -92,6 +92,9 @@ class downloadThread(threading.Thread):
             dateResult = DatePattern2.findall(data)
             for k,later in enumerate(fileResult):
                 fileURL = FileBaseURL+later
+                if CATEID == 0:
+                    furl1 = FIND2NAME.search(fileURL).groups()
+                    fileURL = furl1[0]+"name="+urllib.quote(furl1[1])
                 date2 = DatePattern1.search(dateResult[k]).groups()
                 lock.acquire()  # 获取锁来修改DOWNLOADED内容
                 try:
