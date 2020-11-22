@@ -171,7 +171,7 @@ def getCategoryPages(caterotyID,downloadDIR):
 
 
 if __name__ == '__main__':
-    baseDir = '/tmp/dicts/baidu' # 设置你的下载目录
+    baseDir = os.environ["TMP_DL_PATH"]+'/baidu' # 设置你的下载目录
     DOWNLOAD_LOG = '/tmp/baiduDownload.log'
     start = time.time()
     bigCateDict, smallCateDict = getCategory.getBaiduDictCate()
